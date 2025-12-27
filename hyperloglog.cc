@@ -1,3 +1,6 @@
+/* Registers encoding refer to "hyperloglog.c" of redis [https://github.com/redis/redis.git].
+   Implement detail can be obtained from this repo.
+*/
 #include "hyperloglog.h"
 #include "hash.h"
 

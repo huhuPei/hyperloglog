@@ -38,6 +38,10 @@ double LogLog::StandardError() {
   return 1.30 / sqrt(m_);
 }
 
+size_t LogLog::NumOfBuckets() {
+  return m_;
+}
+
 bool LogLog::Add(const char* data, size_t n) {
   uint32_t j, hash;
   hash = MurmurHash(data, n, 0xcd6f1b43);

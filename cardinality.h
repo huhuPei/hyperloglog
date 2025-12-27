@@ -12,6 +12,7 @@ public:
   virtual long long Count() = 0;
   virtual size_t UsageOfMemory() = 0;
   virtual double StandardError() = 0;
+  virtual size_t NumOfBuckets() = 0;
 };
 
 #endif

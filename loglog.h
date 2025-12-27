@@ -14,6 +14,7 @@ class LogLog : public Cardinality {
   virtual long long Count();
   virtual size_t UsageOfMemory();
   virtual double StandardError();
+  virtual size_t NumOfBuckets();
 
  private:
   static const double alpha_table_[];

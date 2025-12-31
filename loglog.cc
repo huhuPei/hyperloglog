@@ -5,6 +5,7 @@
 #include <math.h>
 #include <assert.h>
 #include <string.h>
+#include <initializer_list>
 
 // if m > 64, then alpha = 0.3970
 const double LogLog::alpha_table_[8] = {
@@ -12,11 +13,16 @@ const double LogLog::alpha_table_[8] = {
   0.3685, 0.3827, 0.3903, 0.3970
 };
 
-LogLog::LogLog(int k): k_(k), m_(1 << k), Rsum_(0) {
+LogLog::LogLog(int k): k_(k), m_(1 << k) {
   assert(k < 32 && k >= 1);
   alpham_ = k >= 7? alpha_table_[7] : alpha_table_[k]; 
   M_ = new uint8_t[m_];
   memset(M_, 0, m_);
+}
+
+LogLog::LogLog(LogLog& other): k_(other.k_), m_(other.m_), alpham_(other.alpham_) {
+  M_ = new uint8_t[m_];
+  memcpy(M_, other.M_, m_);
 }
 
 LogLog::~LogLog() {
@@ -25,7 +31,11 @@ LogLog::~LogLog() {
 
 // N = alpha * m * 2^(Rsum/m)
 long long LogLog::Count() {
-  double Ravg = Rsum_ / (double)m_;
+  long long Rsum = 0;
+  for (int j = 0; j < m_; j++) {
+    Rsum += M_[j];
+  }
+  double Ravg = Rsum / (double)m_;
   return static_cast<long long>(alpham_* m_ * pow(2, Ravg));
 }
 
@@ -50,9 +60,43 @@ bool LogLog::Add(const char* data, size_t n) {
   // the position of its first 1-bit
   int r = __builtin_clz(hash) + 1;
   if (M_[j] < r) {
-    Rsum_ += r - M_[j];
     M_[j] = r;
     return true;
   }
   return false;
+}
+
+Estimator* LogLog::Merge(std::initializer_list<Estimator*> list) {
+  if (list.size() <= 0) {
+    return this;
+  }
+
+  LogLog* merged = new LogLog(*this);
+  for (auto est : list) {
+    auto log = dynamic_cast<LogLog*>(est);
+    // all of counter must be the same type, and have equal buckets
+    if (log == nullptr || merged->NumOfBuckets() != log->NumOfBuckets()) {
+      delete merged;
+      return nullptr;
+    }
+    for (int j = 0; j < m_; j++) {
+      if (merged->M_[j] < log->M_[j]) {
+        merged->M_[j] = log->M_[j];
+      }
+    }
+  }
+  return merged;
+}
+
+LogLog& LogLog::operator=(LogLog& other) {
+  if (this != &other) {
+    delete[] M_;
+    M_ = new uint8_t[m_];
+    memcpy(M_, other.M_, m_);
+  }
+  return *this;
+}
+
+Estimator* NewLogLog(int k) {
+  return new LogLog(k);
 }

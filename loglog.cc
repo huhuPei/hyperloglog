@@ -20,11 +20,6 @@ LogLog::LogLog(int k): k_(k), m_(1 << k) {
   memset(M_, 0, m_);
 }
 
-LogLog::LogLog(LogLog& other): k_(other.k_), m_(other.m_), alpham_(other.alpham_) {
-  M_ = new uint8_t[m_];
-  memcpy(M_, other.M_, m_);
-}
-
 LogLog::~LogLog() {
   delete[] M_;
 }
@@ -71,7 +66,9 @@ Estimator* LogLog::Merge(std::initializer_list<Estimator*> list) {
     return this;
   }
 
-  LogLog* merged = new LogLog(*this);
+  LogLog* merged = new LogLog(this->k_);
+  memcpy(merged->M_, this->M_, m_);
+  
   for (auto est : list) {
     auto log = dynamic_cast<LogLog*>(est);
     // all of counter must be the same type, and have equal buckets
@@ -86,15 +83,6 @@ Estimator* LogLog::Merge(std::initializer_list<Estimator*> list) {
     }
   }
   return merged;
-}
-
-LogLog& LogLog::operator=(LogLog& other) {
-  if (this != &other) {
-    delete[] M_;
-    M_ = new uint8_t[m_];
-    memcpy(M_, other.M_, m_);
-  }
-  return *this;
 }
 
 Estimator* NewLogLog(int k) {

@@ -9,7 +9,6 @@
 class LogLog : public Estimator {
  public:
   LogLog(int k);
-  LogLog(LogLog& other);
   virtual ~LogLog();
   virtual bool Add(const char* data, size_t n);
   virtual long long Count();
@@ -17,7 +16,11 @@ class LogLog : public Estimator {
   virtual double StandardError();
   virtual size_t NumOfBuckets();
   virtual Estimator* Merge(std::initializer_list<Estimator*> list);
-  LogLog& operator=(LogLog& other);
+  
+  LogLog& operator=(const LogLog&) = delete;
+  LogLog& operator=(LogLog&&) = delete;
+  LogLog(LogLog&) = delete;
+  LogLog(LogLog&&) = delete;
 
  private:
   static const double alpha_table_[];

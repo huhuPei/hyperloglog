@@ -1,10 +1,10 @@
 #ifndef HYPER_LOG_LOG_H_
 #define HYPER_LOG_LOG_H_
 
-#include "cardinality.h"
+#include "estimator.h"
 #include <stdint.h>
 
-class HyperLogLog: public Cardinality {
+class HyperLogLog: public Estimator {
  public:
   HyperLogLog(int b);
   virtual ~HyperLogLog();
@@ -13,6 +13,13 @@ class HyperLogLog: public Cardinality {
   virtual size_t UsageOfMemory();
   virtual double StandardError();
   virtual size_t NumOfBuckets();
+  virtual Estimator* Merge(std::initializer_list<Estimator*> list);
+
+  HyperLogLog& operator=(const HyperLogLog&) = delete;
+  HyperLogLog& operator=(HyperLogLog&&) = delete;
+  HyperLogLog(const HyperLogLog&) = delete;
+  HyperLogLog(HyperLogLog&&) = delete;
+
  private:
   void InitRegisters(size_t m);
   // equal to M[reg_num]

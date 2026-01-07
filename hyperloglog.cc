@@ -75,6 +75,30 @@ size_t HyperLogLog::NumOfBuckets() {
   return m_;
 }
 
+Estimator* HyperLogLog::Merge(std::initializer_list<Estimator*> list) {
+  if (list.size() <= 0) {
+    return this;
+  }
+
+  HyperLogLog* merged = new HyperLogLog(this->b_);
+  memcpy(merged->registers_, this->registers_, this->regs_bytes_);
+
+  for (auto est : list) {
+    auto log = dynamic_cast<HyperLogLog*>(est);
+    // all of counter must be the same type, and have equal buckets
+    if (log == nullptr || merged->NumOfBuckets() != log->NumOfBuckets()) {
+      delete merged;
+      return nullptr;
+    }
+    for (int j = 0; j < merged->NumOfBuckets(); j++) {  
+      if (merged->GetRegister(j) < log->GetRegister(j)) {
+        merged->SetRegister(j, log->GetRegister(j));
+      }
+    }
+  }
+  return merged;
+}
+
 void HyperLogLog::InitRegisters(size_t m) {
   unsigned int bytes = m * REG_BITS / 8 + 1;
   if (m * REG_BITS % 8 >= 6) {
@@ -118,4 +142,8 @@ double HyperLogLog::GetAlpha(size_t m) {
     default:
       return (0.7213 / (1 + 1.079 / m));
   }
+}
+
+Estimator* NewHyperLogLog(int b) {
+  return new HyperLogLog(b);
 }

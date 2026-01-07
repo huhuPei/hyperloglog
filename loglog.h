@@ -19,7 +19,7 @@ class LogLog : public Estimator {
   
   LogLog& operator=(const LogLog&) = delete;
   LogLog& operator=(LogLog&&) = delete;
-  LogLog(LogLog&) = delete;
+  LogLog(const LogLog&) = delete;
   LogLog(LogLog&&) = delete;
 
  private:
